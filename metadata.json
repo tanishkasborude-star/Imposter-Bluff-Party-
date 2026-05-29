@@ -1,0 +1,6 @@
+{
+  "name": "Imposter",
+  "description": "A high-stakes social deduction and party game experience featuring gorgeous neon design, quick matches, private rooms, and thematic word packs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,278 @@
+package com.example.ui.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.ui.viewmodel.GameViewModel
+
+@Composable
+fun WordRevealScreen(
+    viewModel: GameViewModel
+) {
+    val players by viewModel.players.collectAsState()
+    val revealIndex by viewModel.revealPlayerIndex.collectAsState()
+    val activePlayer = players.getOrNull(revealIndex)
+
+    var isRevealed by remember { mutableStateOf(false) }
+
+    // Resets reveal state when activePlayer changes indices
+    LaunchedEffect(revealIndex) {
+        isRevealed = false
+    }
+
+    if (activePlayer == null) return
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF1C1B1F))
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Player badge tag
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(top = 20.dp)
+        ) {
+            Text(
+                text = "PASS & PLAY ROLE REVEAL",
+                fontSize = 11.sp,
+                fontFamily = FontFamily.Monospace,
+                color = Color(0xFFD1BCFF),
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(Color(0xFF2B2930))
+                    .border(1.dp, Color(0xFF49454F).copy(alpha = 0.5f), RoundedCornerShape(99.dp))
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(activePlayer.avatarEmoji, fontSize = 20.sp)
+                    Text(
+                        text = activePlayer.name,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+
+        // Center card reveal box
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(vertical = 32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            // Ambient glowing blurs
+            Box(
+                modifier = Modifier
+                    .size(220.dp)
+                    .blur(50.dp)
+                    .background(
+                        if (isRevealed && activePlayer.isImposter) Color(0xFFD1BCFF).copy(alpha = 0.15f)
+                        else if (isRevealed) Color(0xFFB4F5AD).copy(alpha = 0.12f)
+                        else Color(0xFFD1BCFF).copy(alpha = 0.08f),
+                        CircleShape
+                    )
+            )
+
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF2B2930)
+                ),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(310.dp)
+                    .border(
+                        width = 1.dp,
+                        color = if (isRevealed && activePlayer.isImposter) Color(0xFFD1BCFF).copy(alpha = 0.4f)
+                                else if (isRevealed) Color(0xFFB4F5AD).copy(alpha = 0.3f)
+                                else Color(0xFF49454F).copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    if (activePlayer.isBot) {
+                        // Bot reveal setup (autogenerated details)
+                        Icon(
+                            imageVector = Icons.Default.VisibilityOff,
+                            contentDescription = null,
+                            tint = Color(0xFFB4F5AD),
+                            modifier = Modifier.size(54.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "AI BOT AGENT",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Role assigned privately. This bot is analyzing clues and will give descriptions automatically.",
+                            fontSize = 13.sp,
+                            color = Color(0xFFC9C5D0),
+                            textAlign = TextAlign.Center
+                        )
+                    } else if (!isRevealed) {
+                        // Hidden state
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF1C1B1F))
+                                .border(1.dp, Color(0xFF49454F), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            IconButton(onClick = { isRevealed = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.Visibility,
+                                    contentDescription = "Reveal",
+                                    tint = Color(0xFFD1BCFF),
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "TAP TO REVEAL WORD",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            color = Color.White,
+                            letterSpacing = 1.sp
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Make sure no other players are peeping on the screen!",
+                            fontSize = 12.sp,
+                            color = Color(0xFFC9C5D0),
+                            textAlign = TextAlign.Center
+                        )
+                    } else {
+                        // Revealed state for humans
+                        if (activePlayer.isImposter) {
+                            Text(
+                                text = "YOU ARE THE",
+                                fontSize = 12.sp,
+                                fontFamily = FontFamily.Monospace,
+                                color = Color(0xFFD1BCFF),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "IMPOSTER",
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFFD1BCFF),
+                                letterSpacing = 2.sp
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "You do NOT know the secret word. Listen to what others describe, sound convincing, and pretend you match the topic!",
+                                fontSize = 13.sp,
+                                color = Color(0xFFC9C5D0),
+                                textAlign = TextAlign.Center
+                            )
+                        } else {
+                            Text(
+                                text = "YOUR SECRET WORD IS",
+                                fontSize = 11.sp,
+                                fontFamily = FontFamily.Monospace,
+                                color = Color(0xFFB4F5AD),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = activePlayer.secretWord,
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFFB4F5AD),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "You are a CIVILIAN. Write a single short clue describing this word. Keep it mysterious so the Imposter doesn't steal the win!",
+                                fontSize = 13.sp,
+                                color = Color(0xFFC9C5D0),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Action Trigger Button
+        Button(
+            onClick = {
+                if (activePlayer.isBot || isRevealed) {
+                    viewModel.nextReveal()
+                } else {
+                    isRevealed = true
+                }
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isRevealed && activePlayer.isImposter) Color(0xFFD1BCFF) 
+                                 else if (isRevealed) Color(0xFFB4F5AD) 
+                                 else Color(0xFFD1BCFF)
+            ),
+            shape = RoundedCornerShape(99.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+        ) {
+            val text = if (activePlayer.isBot) "PROCESS BOT ASSIGNMENT"
+                       else if (isRevealed) "I UNDERSTAND, HIDE MY ROLE"
+                       else "REVEAL MY CARD ROLE"
+            
+            val contentColor = if (isRevealed && activePlayer.isImposter) Color(0xFF381E72) 
+                               else if (isRevealed) Color(0xFF00390A)
+                               else Color(0xFF381E72)
+
+            Text(
+                text = text,
+                fontSize = 13.sp,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                color = contentColor
+            )
+        }
+    }
+}
